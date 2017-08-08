@@ -19,7 +19,7 @@ function help_files() {
 }
 
 function month() {
-  date --date="-${1} months -$(($(date +%d)-1)) days" '+%Y-%m-'
+  date --date="-${1} months -$(($(date +%d | sed 's/^0//')-1)) days" '+%Y-%m-'
 }
 function month_math() {
   echo ${MONTHS}-1 | bc
