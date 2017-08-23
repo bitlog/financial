@@ -58,11 +58,11 @@ function prices(){
         ((RUN++))
         CALC="$(echo "${CALL}" | grep "\"$(echo "${line}" | awk -F'|' -v var="${RUN}" '{print $var}')\": " | awk -F\: '{print $2}' | sed 's/[^.0-9]//g' | xargs printf "%.${ROUND}f\n")"
 
-	PRICE="$(echo "${CALC}" | awk -F'.' '{print $1}' | rev | sed "s/.\{3\}/&'/g" | rev | sed "s/^'//")"
-	DECIMALS="$(echo "${CALC}" | awk -F'.' '{print $2}')"
-	if [[ ! -z "${DECIMALS}" ]]; then
-	  DECIMALS=".${DECIMALS}"
-	fi
+        PRICE="$(echo "${CALC}" | awk -F'.' '{print $1}' | rev | sed "s/.\{3\}/&'/g" | rev | sed "s/^'//")"
+        DECIMALS="$(echo "${CALC}" | awk -F'.' '{print $2}')"
+        if [[ ! -z "${DECIMALS}" ]]; then
+          DECIMALS=".${DECIMALS}"
+        fi
 
         TOTAL="${TOTAL}${PRICE}${DECIMALS} "
       done
@@ -81,6 +81,12 @@ if ip a | grep inet | awk '{print $2}' | grep -qvE "^127.0.0.1"; then
   fi
 
 else
+  echo " | No IP | " > ${FILE}
+
+  if tty -s; then
+    echo -e "\nNo IP!\n"
+  fi
+
   exit 1
 fi
 
