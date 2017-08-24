@@ -77,7 +77,7 @@ if ip a | grep inet | awk '{print $2}' | grep -qvE "^127.0.0.1"; then
   echo "${PRICES} | " > ${FILE}
 
   if tty -s; then
-    echo "${PRICES}" | sed -e 's/^ | //' -e 's/ | /\n/g'
+    echo "${PRICES}" | sed -e 's/^ | //' -e 's/ | /\n/g' | column -ets':'
   fi
 
 else
