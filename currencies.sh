@@ -64,7 +64,7 @@ function prices(){
           DECIMALS=".${DECIMALS}"
         fi
 
-        TOTAL="${TOTAL}${PRICE}${DECIMALS} "
+        TOTAL+="${PRICE}${DECIMALS} "
       done
       echo -n "$(echo "${TOTAL}" | sed 's/ $//')"
     fi
