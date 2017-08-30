@@ -52,7 +52,7 @@ function prices(){
       unset TOTAL
       until [[ "${RUN}" -eq "${END}" ]]; do
         ((RUN++))
-        CALL="$(curl -s $(echo "${line}" | awk -F'|' -v var="${RUN}" '{print $var}') | python -mjson.tool 2> /dev/null)"
+        CALL="$(curl -s --connect-timeout 3 $(echo "${line}" | awk -F'|' -v var="${RUN}" '{print $var}') | python -mjson.tool 2> /dev/null)"
 
         ((RUN++))
         CALC="$(echo "${CALL}" | grep "\"$(echo "${line}" | awk -F'|' -v var="${RUN}" '{print $var}')\": " | awk -F\: '{print $2}' | sed 's/[^.0-9]//g' | xargs printf "%.${ROUND}f\n")"
