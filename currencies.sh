@@ -28,13 +28,11 @@ fi
 
 URLS="# Format is as follows, separated by pipes (|): Description|Amount of decimals to round to, empty equals 2|URL|JSON element
 # URLs and JSON elements are required for this to work and can be stacked infinitely
-BTC||https://api.coinmarketcap.com/v1/ticker/bitcoin/|price_usd
-ETH||https://api.coinmarketcap.com/v1/ticker/ethereum/|price_usd
-BCC||https://api.coinmarketcap.com/v1/ticker/bitcoin-cash/|price_usd
-NEO||https://api.coinmarketcap.com/v1/ticker/neo/|price_usd
-NAV||https://api.coinmarketcap.com/v1/ticker/nav-coin/|price_usd
-QTUM||https://api.coinmarketcap.com/v1/ticker/qtum/|price_usd
-OMG||https://api.coinmarketcap.com/v1/ticker/omisego/|price_usd
+BTC|0|https://lykke-public-api.azurewebsites.net/api/Market/BTCCHF|ask|https://lykke-public-api.azurewebsites.net/api/Market/BTCCHF|bid
+ETH||https://lykke-public-api.azurewebsites.net/api/Market/ETHCHF|ask|https://lykke-public-api.azurewebsites.net/api/Market/ETHCHF|bid
+NEO||https://bittrex.com/api/v1.1/public/getticker?market=usdt-neo|Ask|https://bittrex.com/api/v1.1/public/getticker?market=usdt-neo|Bid
+NAV USD||https://api.coinmarketcap.com/v1/ticker/nav-coin/|price_usd
+NAV BTC|7|https://bittrex.com/api/v1.1/public/getticker?market=btc-nav|Ask|https://bittrex.com/api/v1.1/public/getticker?market=btc-nav|Bid
 USD|3|https://api.fixer.io/latest?base=CHF|USD|https://api.fixer.io/latest?base=USD|CHF
 EUR|3|https://api.fixer.io/latest?base=CHF|EUR|https://api.fixer.io/latest?base=EUR|CHF"
 
