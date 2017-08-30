@@ -30,6 +30,7 @@ URLS="# Format is as follows, separated by pipes (|): Description|Amount of deci
 # URLs and JSON elements are required for this to work and can be stacked infinitely
 ETH||https://lykke-public-api.azurewebsites.net/api/Market/ETHCHF|ask|https://lykke-public-api.azurewebsites.net/api/Market/ETHCHF|bid
 NEO||https://bittrex.com/api/v1.1/public/getticker?market=usdt-neo|Ask|https://bittrex.com/api/v1.1/public/getticker?market=usdt-neo|Bid
+NAV|7|https://bittrex.com/api/v1.1/public/getticker?market=btc-nav|Ask|https://bittrex.com/api/v1.1/public/getticker?market=btc-nav|Bid
 QTUM|5|https://bittrex.com/api/v1.1/public/getticker?market=btc-qtum|Ask|https://bittrex.com/api/v1.1/public/getticker?market=btc-qtum|Bid
 OMG|5|https://bittrex.com/api/v1.1/public/getticker?market=btc-omg|Ask|https://bittrex.com/api/v1.1/public/getticker?market=btc-omg|Bid
 BCC|0|https://bittrex.com/api/v1.1/public/getticker?market=usdt-bcc|Ask|https://bittrex.com/api/v1.1/public/getticker?market=usdt-bcc|Bid
