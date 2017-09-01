@@ -6,6 +6,9 @@ A collection of simple scripts intended for daily usage
    * Manages input/costs in flat files
    * Generates general overview over last months
    * Generates specific overview with search terms
+1. [bittrex.sh](bittrex.sh) *Bash script to interact with Bittrex API*
+   * Call currency balances, deposit addresses and histories etc
+   * For the moment, this script only utilises read only API calls
 1. [currencies.sh](currencies.sh) *Get live currency rates*
    * Get currency conversion rates from multiple API sites using JSON
    * Differentiate between terminals (for example, used by Tmux) and "live terminals" for according output
