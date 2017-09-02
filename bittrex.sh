@@ -12,16 +12,23 @@ function bittrex_call() {
   APIKEYTAG="?apikey=${APIKEY}&nonce=$(date '+%s')&currency=${i}"
   SIGN="$(echo -n "${APIURL}${APIKEYTAG}" | openssl sha512 -hmac "${SECRET}" | awk '{print $NF}')"
 
+  TMOUT="2"
+  TMOUTMAX="5"
+  TMOUTMSG="Connection timed out after ${TMOUT} to ${TMOUTMAX} seconds!"
+
   # get data
-  CALL="$(curl -s --connect-timeout 2 -m 5 -H "apisign: ${SIGN}" "${APIURL}${APIKEYTAG}" | python -mjson.tool 2> /dev/null)"
+  CALL="$(curl -s --connect-timeout ${TMOUT} -m ${TMOUTMAX} -H "apisign: ${SIGN}" "${APIURL}${APIKEYTAG}" || echo "${TMOUTMSG}")"
 
   # check if success flag true
-  if echo "${CALL}" | grep -q "\"success\": true"; then
-    echo "${CALL}" | sed -e '1,2d' | head -n -2 | sed 's/^    //'
+  if echo "${CALL}" | grep -q "\"success\":true"; then
+    echo "${CALL}" | python -mjson.tool 2> /dev/null | sed -e '1,2d' | head -n -2 | sed 's/^    //'
+
+  elif echo "${CALL}" | grep -q "${TMOUTMSG}"; then
+    echo "${ERRMSG}"
 
   else
     echo -en "An error occurred:\n - "
-    echo "${CALL}" | grep "\"message\": " | awk -F':' '{print $2}' | sed -e 's/^ "//' -e 's/",$//'
+    echo "${CALL}" | grep "\"message\":" | awk -F':' '{print $2}' | sed -e 's/^ "//' -e 's/",$//'
   fi
 
   # end output
