@@ -62,7 +62,7 @@ function help_api() {
   echo -e "\nAPI keys can be acquired at https://bittrex.com/Manage#sectionApi\n" >&2
 }
 function help_optional() {
-  echo -e "\nOptional arguments for $(basename ${0}), require an argument and can be used multiple times:\n" >&2
+  echo -e "\nOptional arguments for $(basename ${0}):\n" >&2
 
   OPTHELP+=" -a : addresses for deposits on Bittrex\n"
   OPTHELP+=" -b : balance of all currencies\n"
