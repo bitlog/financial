@@ -30,8 +30,12 @@ URLS="# Format is as follows, separated by pipes (|): Description|Amount of deci
 # URLs and JSON elements are required for this to work and can be stacked infinitely
 BTC|0|https://lykke-public-api.azurewebsites.net/api/Market/BTCCHF|ask|https://lykke-public-api.azurewebsites.net/api/Market/BTCCHF|bid
 ETH||https://lykke-public-api.azurewebsites.net/api/Market/ETHCHF|ask|https://lykke-public-api.azurewebsites.net/api/Market/ETHCHF|bid
-NAV||https://api.coinmarketcap.com/v1/ticker/nav-coin/|price_usd
-NAV|8|https://bittrex.com/api/v1.1/public/getticker?market=btc-nav|Ask|https://bittrex.com/api/v1.1/public/getticker?market=btc-nav|Bid
+ARK||https://api.coinmarketcap.com/v1/ticker/ark/|price_usd
+MCO||https://api.coinmarketcap.com/v1/ticker/monaco/|price_usd
+NAV|3|https://api.coinmarketcap.com/v1/ticker/nav-coin/|price_usd
+NEO||https://api.coinmarketcap.com/v1/ticker/neo/|price_usd
+OMG||https://api.coinmarketcap.com/v1/ticker/omisego/|price_usd
+XVG|5|https://api.coinmarketcap.com/v1/ticker/verge/|price_usd
 USD|3|https://api.fixer.io/latest?base=CHF|USD|https://api.fixer.io/latest?base=USD|CHF
 EUR|3|https://api.fixer.io/latest?base=CHF|EUR|https://api.fixer.io/latest?base=EUR|CHF"
 
