@@ -7,6 +7,7 @@ CURRENCIES="ARK MCO NAV NEO OMG XVG"
 
 # set variables
 CURL="curl -s --connect-timeout 2 -m 5"
+ERROR="error"
 FILE="/tmp/$(basename ${0})-$(whoami)"
 PRG="$(basename ${0})"
 
@@ -63,10 +64,11 @@ fi
 BTC="$(${CURL} "https://lykke-public-api.azurewebsites.net/api/Market/BTCCHF" | python -mjson.tool 2> /dev/null)"
 if [[ ! -z "${BTC}" ]]; then
   BTCBUY="$(echo "${BTC}" | grep "\"ask\"" | lykke | awk -F'.' '{print $1}' | format)"
-  BTCSLL="$(echo "${BTC}" | grep "\"bid\"" | lykke | awk -F'.' '{print $1}' | format)"
+  BTCPRICE="$(echo "${BTC}" | grep "\"bid\"" | lykke)"
+  BTCSLL="$(echo "${BTCPRICE}" | awk -F'.' '{print $1}' | format)"
   CRYPTO=" | BTC: ${BTCBUY} ${BTCSLL}"
 else
-  CRYPTO=" | BTC: error"
+  CRYPTO=" | BTC: ${ERROR}"
 fi
 
 # get lykke eth prices
@@ -76,17 +78,18 @@ if [[ ! -z "${ETH}" ]]; then
   ETHSLL="$(echo "${ETH}" | grep "\"bid\"" | lykke | awk -F'.' '{print $1}' | format)"
   CRYPTO+=" | ETH: ${ETHBUY} ${ETHSLL}"
 else
-  CRYPTO+=" | ETH: error"
+  CRYPTO+=" | ETH: ${ERROR}"
 fi
 
 
-# calculate bittrex prices
+# calculations with btc price
 if [[ ! -z "${BTC}" ]]; then
-BTCPRICE="$(echo "${BTC}" | grep "\"bid\"" | lykke)"
+
+  # calculate bittrex prices
   for i in ${CURRENCIES}; do
     CRC="$(${CURL} "https://bittrex.com/api/v1.1/public/getticker?market=BTC-${i}" | python -mjson.tool 2> /dev/null)"
 
-    if [[ ! -z "${CRC}" ]]; then
+    if [[ ! -z "${CRC}" ]] && echo "${CRC}" | grep -q "\"Bid\""; then
       CRCPRICE="$(echo "${CRC}" | grep "\"Bid\"" | awk '{print $2}' | sed -e 's/,$//' -e 's/[eE]+*/\*10\^/')"
       CALC="$(echo "${BTCPRICE} * ${CRCPRICE}" | bc -l | sed -e 's/^\./0\./' -e 's/\.$/\.00/')"
 
@@ -100,7 +103,10 @@ BTCPRICE="$(echo "${BTC}" | grep "\"bid\"" | lykke)"
         ROUND="4"
       fi
 
-      CRYPTO+="$(echo -n " | ${i}: ${PRC}.${DEC:0:${ROUND}}")"
+      CRYPTO+=" | ${i}: ${PRC}.${DEC:0:${ROUND}}"
+
+    else
+      CRYPTO+=" | ${i}: ${ERROR}"
     fi
   done
 fi
