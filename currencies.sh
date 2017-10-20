@@ -1,11 +1,23 @@
 #!/bin/bash
 
-FILE="/tmp/$(basename ${0})-$(whoami)"
 
+# cryptocurrencies other than btc/eth to check
+CURRENCIES="ARK MCO NAV NEO OMG XVG"
+
+
+# set variables
+CURL="curl -s --connect-timeout 2 -m 5"
+FILE="/tmp/$(basename ${0})-$(whoami)"
+PRG="$(basename ${0})"
+
+
+# set file
 if [[ ! -f "${FILE}" ]]; then
   install -m 0600 /dev/null ${FILE} || exit 1
 fi
 
+
+# check output
 if ! tty -s; then
   SECS="$(date '+%S' | sed 's/^0//')"
   if [[ "${SECS}" -ne "0" ]] && (( ${SECS} % 15 != 0 )); then
@@ -26,68 +38,17 @@ if ! tty -s; then
 fi
 
 
-URLS="# Format is as follows, separated by pipes (|): Description|Amount of decimals to round to, empty equals 2|URL|JSON element
-# URLs and JSON elements are required for this to work and can be stacked infinitely
-BTC|0|https://lykke-public-api.azurewebsites.net/api/Market/BTCCHF|ask|https://lykke-public-api.azurewebsites.net/api/Market/BTCCHF|bid
-ETH||https://lykke-public-api.azurewebsites.net/api/Market/ETHCHF|ask|https://lykke-public-api.azurewebsites.net/api/Market/ETHCHF|bid
-ARK||https://api.coinmarketcap.com/v1/ticker/ark/|price_usd
-MCO||https://api.coinmarketcap.com/v1/ticker/monaco/|price_usd
-NAV|3|https://api.coinmarketcap.com/v1/ticker/nav-coin/|price_usd
-NEO||https://api.coinmarketcap.com/v1/ticker/neo/|price_usd
-OMG||https://api.coinmarketcap.com/v1/ticker/omisego/|price_usd
-XVG|5|https://api.coinmarketcap.com/v1/ticker/verge/|price_usd
-USD|3|https://api.fixer.io/latest?base=CHF|USD|https://api.fixer.io/latest?base=USD|CHF
-EUR|3|https://api.fixer.io/latest?base=CHF|EUR|https://api.fixer.io/latest?base=EUR|CHF"
-
-function prices(){
-  printf '%s\n' "${URLS}" | while IFS= read -r line; do
-    RUN="2"
-    if ! echo "${line}" | grep -qE "^$|^[[:space:]]*$|^#"; then
-      EXCH="$(echo "${line}" | awk -F'|' '{print $1}')"
-      ROUND="$(echo "${line}" | awk -F'|' '{print $2}')"
-      if [[ -z "${ROUND}" ]]; then
-        ROUND="2"
-      fi
-
-      END="$(echo "${line}" | tr '|' '\n' | wc -l)"
-      echo -n " | ${EXCH}: "
-
-      unset TOTAL
-      until [[ "${RUN}" -eq "${END}" ]]; do
-        ((RUN++))
-
-        RUNURL="$(echo "${line}" | awk -F'|' -v var="${RUN}" '{print $var}')"
-        if [[ "${RUNURL}" != "${PREVURL}" ]]; then
-          CALL="$(curl -s --connect-timeout 2 -m 5 ${RUNURL} | python -mjson.tool 2> /dev/null)"
-          PREVURL="${RUNURL}"
-        fi
-
-        ((RUN++))
-        CALC="$(echo "${CALL}" | grep "\"$(echo "${line}" | awk -F'|' -v var="${RUN}" '{print $var}')\": " | awk -F\: '{print $2}' | sed 's/[^.0-9]//g' | xargs printf "%.${ROUND}f\n")"
-
-        PRICE="$(echo "${CALC}" | awk -F'.' '{print $1}' | rev | sed "s/.\{3\}/&'/g" | rev | sed "s/^'//")"
-        DECIMALS="$(echo "${CALC}" | awk -F'.' '{print $2}')"
-        if [[ ! -z "${DECIMALS}" ]]; then
-          DECIMALS=".${DECIMALS}"
-        fi
-
-        TOTAL+="${PRICE}${DECIMALS} "
-      done
-      echo -n "$(echo "${TOTAL}" | sed 's/ $//')"
-    fi
-  done
+# set functions
+function format() {
+  rev | sed "s/.\{3\}/&'/g" | rev | sed "s/^'//"
+}
+function lykke() {
+  awk '{print $2}' | sed 's/,$//'
 }
 
 
-if ip a | grep inet | awk '{print $2}' | grep -qvE "^127.0.0.1"; then
-  PRICES="$(prices)"
-  echo "${PRICES} | " > ${FILE}
-
-  if tty -s; then
-    echo "${PRICES}" | sed -e 's/^ | //' -e 's/ | /\n/g' | column -ets':'
-  fi
-
-else
+# check ip
+if ! ip a | grep inet | awk '{print $2}' | grep -qvE "^127.0.0.1"; then
   echo " | No IP | " > ${FILE}
 
   if tty -s; then
@@ -95,6 +56,61 @@ else
   fi
 
   exit 1
+fi
+
+
+# get lykke btc prices
+BTC="$(${CURL} "https://lykke-public-api.azurewebsites.net/api/Market/BTCCHF" | python -mjson.tool 2> /dev/null)"
+if [[ ! -z "${BTC}" ]]; then
+  BTCBUY="$(echo "${BTC}" | grep "\"ask\"" | lykke | awk -F'.' '{print $1}' | format)"
+  BTCSLL="$(echo "${BTC}" | grep "\"bid\"" | lykke | awk -F'.' '{print $1}' | format)"
+  CRYPTO=" | BTC: ${BTCBUY} ${BTCSLL}"
+else
+  CRYPTO=" | BTC: error"
+fi
+
+# get lykke eth prices
+ETH="$(${CURL} "https://lykke-public-api.azurewebsites.net/api/Market/ETHCHF" | python -mjson.tool 2> /dev/null)"
+if [[ ! -z "${ETH}" ]]; then
+  ETHBUY="$(echo "${ETH}" | grep "\"ask\"" | lykke | awk -F'.' '{print $1}' | format)"
+  ETHSLL="$(echo "${ETH}" | grep "\"bid\"" | lykke | awk -F'.' '{print $1}' | format)"
+  CRYPTO+=" | ETH: ${ETHBUY} ${ETHSLL}"
+else
+  CRYPTO+=" | ETH: error"
+fi
+
+
+# calculate bittrex prices
+if [[ ! -z "${BTC}" ]]; then
+BTCPRICE="$(echo "${BTC}" | grep "\"bid\"" | lykke)"
+  for i in ${CURRENCIES}; do
+    CRC="$(${CURL} "https://bittrex.com/api/v1.1/public/getticker?market=BTC-${i}" | python -mjson.tool 2> /dev/null)"
+
+    if [[ ! -z "${CRC}" ]]; then
+      CRCPRICE="$(echo "${CRC}" | grep "\"Bid\"" | awk '{print $2}' | sed -e 's/,$//' -e 's/[eE]+*/\*10\^/')"
+      CALC="$(echo "${BTCPRICE} * ${CRCPRICE}" | bc -l | sed -e 's/^\./0\./' -e 's/\.$/\.00/')"
+
+      PRC="$(echo "${CALC}" | awk -F'.' '{print $1}' | format)"
+      DEC="$(echo "${CALC}" | awk -F'.' '{print $2}')"
+
+      # set rounding
+      if [[ "${PRC}" != "0" ]]; then
+        ROUND="2"
+      else
+        ROUND="4"
+      fi
+
+      CRYPTO+="$(echo -n " | ${i}: ${PRC}.${DEC:0:${ROUND}}")"
+    fi
+  done
+fi
+
+
+# generate output
+echo "${CRYPTO} | " > ${FILE}
+
+if tty -s; then
+  echo "${CRYPTO}" | sed -e 's/^ | //' -e 's/ | /\n/g' | column -ets':'
 fi
 
 exit $?
