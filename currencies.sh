@@ -2,7 +2,7 @@
 
 
 # cryptocurrencies other than btc/eth to check
-CURRENCIES="ARK MCO NAV NEO OMG XVG"
+CURRENCIES="NAV NEO OMG"
 
 
 # set variables
