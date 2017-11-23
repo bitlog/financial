@@ -63,7 +63,7 @@ fi
 # get lykke btc prices
 BTC="$(${CURL} "https://data.bitlog.ch/btc/price.txt")"
 if [[ ! -z "${BTC}" ]]; then
-  BTCPRICE="$(echo ${BTC} | grep -Eo "^[0-9]+.[0-9]{2}")"
+  BTCPRICE="$(echo "${BTC}" | grep -Eo "^[0-9]+.[0-9]{2}")"
   CRYPTO=" | BTC: ${BTCPRICE}"
 else
   CRYPTO=" | BTC: ${ERROR}"
