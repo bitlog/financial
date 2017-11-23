@@ -110,9 +110,6 @@ while getopts ":qk:s:abcdhow" opt; do
     h)
       ORDERHIST="1"
       ;;
-    o)
-      ORDER="1"
-      ;;
     w)
       WITHDRAWALHIST="1"
       ;;
@@ -147,11 +144,6 @@ elif [[ ! -z "${DEPOSIT}" ]]; then
 
 elif [[ ! -z "${DEPOSITHIST}" ]]; then
   APITAG="getdeposithistory"
-  bittrex_call
-
-elif [[ ! -z "${ORDER}" ]]; then
-  APITAG="getorder"
-  APICALL="order"
   bittrex_call
 
 elif [[ ! -z "${ORDERHIST}" ]]; then
