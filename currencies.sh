@@ -2,7 +2,7 @@
 
 
 # cryptocurrencies other than btc/eth to check
-CURRENCIES="ETH NAV NEO"
+CURRENCIES="ETH NAV SALT NEO"
 
 
 # set variables
@@ -63,7 +63,8 @@ fi
 # get lykke btc prices
 BTC="$(${CURL} "https://data.bitlog.ch/btc/price.txt")"
 if [[ ! -z "${BTC}" ]]; then
-  CRYPTO=" | BTC: ${BTC}"
+  BTCPRICE="$(echo ${BTC} | grep -Eo "^[0-9]+.[0-9]{2}")"
+  CRYPTO=" | BTC: ${BTCPRICE}"
 else
   CRYPTO=" | BTC: ${ERROR}"
 fi
