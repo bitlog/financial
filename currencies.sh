@@ -61,22 +61,17 @@ fi
 
 
 # get lykke btc prices
-BTC="$(${CURL} "https://lykke-public-api.azurewebsites.net/api/Market/BTCCHF" | python -mjson.tool 2> /dev/null)"
+BTC="$(${CURL} "https://data.bitlog.ch/btc/price.txt")"
 if [[ ! -z "${BTC}" ]]; then
-  BTCBUY="$(echo "${BTC}" | grep "\"ask\"" | lykke | awk -F'.' '{print $1}' | format)"
-  BTCPRICE="$(echo "${BTC}" | grep "\"bid\"" | lykke)"
-  BTCSLL="$(echo "${BTCPRICE}" | awk -F'.' '{print $1}' | format)"
-  CRYPTO=" | BTC: ${BTCBUY} ${BTCSLL}"
+  CRYPTO=" | BTC: ${BTC}"
 else
   CRYPTO=" | BTC: ${ERROR}"
 fi
 
 # get lykke eth prices
-ETH="$(${CURL} "https://lykke-public-api.azurewebsites.net/api/Market/ETHCHF" | python -mjson.tool 2> /dev/null)"
+ETH="$(${CURL} "https://data.bitlog.ch/eth/price.txt")"
 if [[ ! -z "${ETH}" ]]; then
-  ETHBUY="$(echo "${ETH}" | grep "\"ask\"" | lykke | awk -F'.' '{print $1}' | format)"
-  ETHSLL="$(echo "${ETH}" | grep "\"bid\"" | lykke | awk -F'.' '{print $1}' | format)"
-  CRYPTO+=" | ETH: ${ETHBUY} ${ETHSLL}"
+  CRYPTO+=" | ETH: ${ETH}"
 else
   CRYPTO+=" | ETH: ${ERROR}"
 fi
@@ -91,7 +86,7 @@ if [[ ! -z "${BTC}" ]]; then
 
     if [[ ! -z "${CRC}" ]] && echo "${CRC}" | grep -q "\"Bid\""; then
       CRCPRICE="$(echo "${CRC}" | grep "\"Bid\"" | awk '{print $2}' | sed -e 's/,$//' -e 's/[eE]+*/\*10\^/')"
-      CALC="$(echo "${BTCPRICE} * ${CRCPRICE}" | bc -l | sed -e 's/^\./0\./' -e 's/\.$/\.00/')"
+      CALC="$(echo "${BTC} * ${CRCPRICE}" | bc -l | sed -e 's/^\./0\./' -e 's/\.$/\.00/')"
 
       PRC="$(echo "${CALC}" | awk -F'.' '{print $1}' | format)"
       DEC="$(echo "${CALC}" | awk -F'.' '{print $2}')"
