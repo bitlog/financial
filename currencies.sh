@@ -2,7 +2,7 @@
 
 
 # cryptocurrencies other than btc/eth to check
-CURRENCIES="NAV NEO"
+CURRENCIES="ETH NAV NEO"
 
 
 # set variables
@@ -67,15 +67,6 @@ if [[ ! -z "${BTC}" ]]; then
 else
   CRYPTO=" | BTC: ${ERROR}"
 fi
-
-# get lykke eth prices
-ETH="$(${CURL} "https://data.bitlog.ch/eth/price.txt")"
-if [[ ! -z "${ETH}" ]]; then
-  CRYPTO+=" | ETH: ${ETH}"
-else
-  CRYPTO+=" | ETH: ${ERROR}"
-fi
-
 
 # calculations with btc price
 if [[ ! -z "${BTC}" ]]; then
