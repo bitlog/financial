@@ -2,7 +2,7 @@
 
 
 # cryptocurrencies other than btc/eth to check
-CURRENCIES="ETH NAV NEO SALT"
+CURRENCIES="ETH NAV NEO"
 
 
 # set variables
