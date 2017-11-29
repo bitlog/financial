@@ -5,11 +5,9 @@
 while getopts "k:s:" opt; do
   case ${opt} in
     k)
-      #APIKEY="a63a512548ee4cb9850e5e7bfff99932"
       APIKEY="${OPTARG}"
       ;;
     s)
-      #SECRETKEY="8038a5bd6579432cb9c341edeeb9eff6"
       SECRETKEY="${OPTARG}"
       ;;
   esac
@@ -41,6 +39,11 @@ fi
 APIURL="https://bittrex.com/api/v1.1/account/getbalances?apikey=${APIKEY}&nonce=$(date '+%s')"
 SIGN="$(echo -n "${APIURL}" | openssl sha512 -hmac "${SECRETKEY}" | awk '{print $NF}')"
 ACCOUNT="$(curl -s --connect-timeout ${TMOUT} -m ${TMOUTMAX} -H "apisign: ${SIGN}" "${APIURL}" | python -mjson.tool 2> /dev/null)"
+
+# check account information success
+if echo "${ACCOUNT}" | grep -q \""success\": false"; then
+  echo "$(echo "${ACCOUNT}" | grep "\"message\":" | awk -F':' '{print $2}' | sed -e 's/^ "//' -e 's/",$//')"
+fi
 
 
 # get all wallets
