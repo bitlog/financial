@@ -23,12 +23,11 @@ fi
 
 
 # set variables
-TMOUT="2"
-TMOUTMAX="5"
+CURL="curl -s --connect-timeout 2 -m 5"
 
 
 # get BTC in CHF
-BTC="$(curl -s --connect-timeout ${TMOUT} -m ${TMOUTMAX} "https://data.bitlog.ch/btc/price.txt")"
+BTC="$(${CURL} "https://data.bitlog.ch/btc/price.txt")"
 if [[ -z "${BTC}" ]]; then
   echo -e "BTC error"
   exit 1
@@ -38,7 +37,7 @@ fi
 # get account information
 APIURL="https://bittrex.com/api/v1.1/account/getbalances?apikey=${APIKEY}&nonce=$(date '+%s')"
 SIGN="$(echo -n "${APIURL}" | openssl sha512 -hmac "${SECRETKEY}" | awk '{print $NF}')"
-ACCOUNT="$(curl -s --connect-timeout ${TMOUT} -m ${TMOUTMAX} -H "apisign: ${SIGN}" "${APIURL}" | python -mjson.tool 2> /dev/null)"
+ACCOUNT="$(${CURL} -H "apisign: ${SIGN}" "${APIURL}" | python -mjson.tool 2> /dev/null)"
 
 # check account information success
 if echo "${ACCOUNT}" | grep -q \""success\": false"; then
@@ -88,7 +87,7 @@ printf '%s\n' "$WALLETS" | while IFS= read -r line; do
   COINSHOW="$(echo "${COINS}" | sed -e 's/[eE]+*/\*10\^/' | bc -l | sed -e 's/^\./0./' -e 's/[0]*$//' -e 's/\.$/\.00/')"
 
   if [[ "${CRC}" != "BTC" ]]; then
-    CRCPRC="$(curl -s --connect-timeout 2 -m 5 "https://bittrex.com/api/v1.1/public/getticker?market=BTC-${CRC}" | python -mjson.tool 2> /dev/null)"
+    CRCPRC="$(${CURL} "https://bittrex.com/api/v1.1/public/getticker?market=BTC-${CRC}" | python -mjson.tool 2> /dev/null)"
 
     if [[ ! -z "${CRCPRC}" ]]; then
       CRCPRICE="$(echo "${CRCPRC}" | grep "\"Bid\"" | awk '{print $2}' | sed 's/,$//')"
