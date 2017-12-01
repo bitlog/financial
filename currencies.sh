@@ -2,7 +2,7 @@
 
 
 # cryptocurrencies other than btc/eth to check
-CURRENCIES="ETH NAV NEO"
+CURRENCIES="ETH $(cat ~/.currencies 2> /dev/null)"
 
 
 # set variables
