@@ -24,6 +24,7 @@ fi
 
 # set variables
 CURL="curl -s --connect-timeout 2 -m 5"
+OUTFILE="/tmp/$(basename ${0})_total.txt"
 
 
 # get BTC in CHF
@@ -47,11 +48,17 @@ fi
 
 # get all wallets
 if [[ ! -z "${ACCOUNT}" ]]; then
-  WALLETS="$(echo "${ACCOUNT}" | grep -E 'Balance|Currency' | awk '{print $2}' | sed -e 's/"//g' -e 's/,$//' | tac | tr '\n' ' ' | sed 's/ /\n/2;P;D' | grep -v " 0.0$" | sort)"
+  WALLETS="$(echo "${ACCOUNT}" | grep -E 'Balance|CryptoAddress|Currency' | awk '{print $2}' | sed -e 's/"//g' -e 's/,$//' | tac | tr '\n' ' ' | sed 's/ /\n/3;P;D' | grep -v " 0.0$" | sort)"
 
 else
   echo -e "\nCouldn't access account\n"
   exit 1
+fi
+
+
+# create output file
+if [[ ! -a "${OUTFILE}" ]] && [[ ! -f "${OUTFILE}" ]]; then
+  touch ${OUTFILE}
 fi
 
 
@@ -65,16 +72,16 @@ function format() {
 function tochf() {
   COINCALC="$(echo "${CALC} * ${COINS}" | calc)"
 
-  CALCFLL="$(echo "${CALC}" | sed 's/^\./0./' | awk -F'.' '{print $1}')"
-  CALCDEC="$(echo "${CALC}" | awk -F'.' '{print $2}')"
+  CALCFLL="$(echo "${CALC}" | sed 's/^\./0./' | awk -F'.' '{print $1}' | format)"
+  CALCDEC="$(echo "${CALC}" | awk -F'.' '{print $2}')00"
 
   TOTAL+="+${COINCALC}"
   TOTALCALC="$(echo "${TOTAL}" | bc)"
   TOTALCHF="$(echo "${TOTALCALC}" | sed 's/^\./0./' | awk -F'.' '{print $1}' | format)"
-  TOTALDEC="$(echo "${TOTALCALC}" | awk -F'.' '{print $2}')"
+  TOTALDEC="$(echo "${TOTALCALC}" | awk -F'.' '{print $2}')00"
 
   CHFFLL="$(echo "${COINCALC}" | sed 's/^\./0./' | awk -F'.' '{print $1}' | format)"
-  CHFDEC="$(echo "${COINCALC}" | awk -F'.' '{print $2}')"
+  CHFDEC="$(echo "${COINCALC}" | awk -F'.' '{print $2}')00"
 }
 
 
@@ -83,9 +90,11 @@ TOTAL="0"
 printf '%s\n' "$WALLETS" | while IFS= read -r line; do
   RUN="1"
   CRC="$(echo "${line}" | awk '{print $1}')"
-  COINS="$(echo "${line}" | awk '{print $2}')"
-  COINSHOW="$(echo "${COINS}" | sed -e 's/[eE]+*/\*10\^/' | bc -l | sed -e 's/^\./0./' -e 's/[0]*$//' -e 's/\.$/\.00/')"
+  ADDR="$(echo "${line}" | awk '{print $2}')"
+  COINS="$(echo "${line}" | awk '{print $3}')"
+  COINSHOW="$(echo "${COINS}" | sed -e 's/[eE]+*/\*10\^/' | bc -l | sed -e 's/^\./0./' -e 's/[0]*$//' -e 's/\.$/.00/')"
 
+  # calculations when currency is not BTC
   if [[ "${CRC}" != "BTC" ]]; then
     CRCPRC="$(${CURL} "https://bittrex.com/api/v1.1/public/getticker?market=BTC-${CRC}" | python -mjson.tool 2> /dev/null)"
 
@@ -103,11 +112,23 @@ printf '%s\n' "$WALLETS" | while IFS= read -r line; do
 
   if [[ "${RUN}" == "1" ]]; then
     tochf
-    echo "${CRC} > Amount: ${COINSHOW} > Price: ${CALCFLL}.${CALCDEC:0:2} > CHF: ${CHFFLL}.${CHFDEC:0:2} > Total: ${TOTALCHF}.${TOTALDEC:0:2}"
+
+    # output
+    echo "Currency: ${CRC} > Address: ${ADDR} > Amount: ${COINSHOW} > Price: ${CALCFLL}.${CALCDEC:0:2} > CHF: ${CHFFLL}.${CHFDEC:0:2}"
+
+    # output total amount into outfile
+    if [[ -f "${OUTFILE}" ]]; then
+      echo "${TOTALCHF}.${TOTALDEC:0:2}" > ${OUTFILE}
+    fi
 
   else
-    echo "${CRC} > ERROR!"
+    echo "Currency: ${CRC} > ERROR!"
   fi
 done | column -ets'>'
+
+if [[ -s "${OUTFILE}" ]]; then
+  echo -e "\nTotal CHF $(cat ${OUTFILE})"
+  rm ${OUTFILE}
+fi
 
 exit 0

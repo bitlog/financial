@@ -81,7 +81,7 @@ if [[ ! -z "${BTC}" ]]; then
       CALC="$(echo "${BTC} * ${CRCPRICE}" | bc -l | sed -e 's/^\./0\./' -e 's/\.$/\.00/')"
 
       PRC="$(echo "${CALC}" | awk -F'.' '{print $1}' | format)"
-      DEC="$(echo "${CALC}" | awk -F'.' '{print $2}')"
+      DEC="$(echo "${CALC}" | awk -F'.' '{print $2}')00"
 
       # set rounding
       if [[ "${PRC}" != "0" ]]; then
