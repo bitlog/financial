@@ -74,14 +74,29 @@ function tochf() {
 
   CALCFLL="$(echo "${CALC}" | sed 's/^\./0./' | awk -F'.' '{print $1}' | format)"
   CALCDEC="$(echo "${CALC}" | awk -F'.' '{print $2}')00"
+  if [[ "${CALCFLL}" != "0" ]]; then
+    CALCROUND="2"
+  else
+    CALCROUND="4"
+  fi
+
+  CHFFLL="$(echo "${COINCALC}" | sed 's/^\./0./' | awk -F'.' '{print $1}' | format)"
+  CHFDEC="$(echo "${COINCALC}" | awk -F'.' '{print $2}')00"
+  if [[ "${CHFFLL}" != "0" ]]; then
+    CHFROUND="2"
+  else
+    CHFROUND="4"
+  fi
 
   TOTAL+="+${COINCALC}"
   TOTALCALC="$(echo "${TOTAL}" | bc)"
   TOTALCHF="$(echo "${TOTALCALC}" | sed 's/^\./0./' | awk -F'.' '{print $1}' | format)"
   TOTALDEC="$(echo "${TOTALCALC}" | awk -F'.' '{print $2}')00"
-
-  CHFFLL="$(echo "${COINCALC}" | sed 's/^\./0./' | awk -F'.' '{print $1}' | format)"
-  CHFDEC="$(echo "${COINCALC}" | awk -F'.' '{print $2}')00"
+  if [[ "${TOTALCHF}" != "0" ]]; then
+    TOTALROUND="2"
+  else
+    TOTALROUND="4"
+  fi
 }
 
 
@@ -114,11 +129,11 @@ printf '%s\n' "$WALLETS" | while IFS= read -r line; do
     tochf
 
     # output
-    echo "Currency: ${CRC} > Address: ${ADDR} > Amount: ${COINSHOW} > Price: ${CALCFLL}.${CALCDEC:0:2} > CHF: ${CHFFLL}.${CHFDEC:0:2}"
+    echo "Currency: ${CRC} > Address: ${ADDR} > Amount: ${COINSHOW} > Price: ${CALCFLL}.${CALCDEC:0:${CALCROUND}} > CHF: ${CHFFLL}.${CHFDEC:0:${CHFROUND}}"
 
     # output total amount into outfile
     if [[ -f "${OUTFILE}" ]]; then
-      echo "${TOTALCHF}.${TOTALDEC:0:2}" > ${OUTFILE}
+      echo "${TOTALCHF}.${TOTALDEC:0:${TOTALROUND}}" > ${OUTFILE}
     fi
 
   else
