@@ -64,7 +64,7 @@ fi
 
 # functions
 function calc() {
-  sed -e 's/[eE]+*/\*10\^/' | bc -l | sed -e 's/^\./0\./' -e 's/\.$/\.00/'
+  sed -e 's/[eE]+*/\*10\^/' | bc -l | sed -e 's/^\./0./' -e 's/[0]*$//' -e 's/\.$/.00/'
 }
 function format() {
   rev | sed "s/.\{3\}/&'/g" | rev | sed "s/^'//"
@@ -107,14 +107,14 @@ printf '%s\n' "$WALLETS" | while IFS= read -r line; do
   CRC="$(echo "${line}" | awk '{print $1}')"
   ADDR="$(echo "${line}" | awk '{print $2}')"
   COINS="$(echo "${line}" | awk '{print $3}')"
-  COINSHOW="$(echo "${COINS}" | sed -e 's/[eE]+*/\*10\^/' | bc -l | sed -e 's/^\./0./' -e 's/[0]*$//' -e 's/\.$/.00/')"
+  COINSHOW="$(echo "${COINS}" | calc)"
 
   # calculations when currency is not BTC
   if [[ "${CRC}" != "BTC" ]]; then
     CRCPRC="$(${CURL} "https://bittrex.com/api/v1.1/public/getticker?market=BTC-${CRC}" | python -mjson.tool 2> /dev/null)"
 
     if [[ ! -z "${CRCPRC}" ]]; then
-      CRCPRICE="$(echo "${CRCPRC}" | grep "\"Bid\"" | awk '{print $2}' | sed 's/,$//')"
+      CRCPRICE="$(echo "${CRCPRC}" | grep "\"Bid\"" | awk '{print $2}' | sed 's/,$//' | calc)"
       CALC="$(echo "${BTC} * ${CRCPRICE}" | calc)"
 
     else
@@ -122,6 +122,7 @@ printf '%s\n' "$WALLETS" | while IFS= read -r line; do
     fi
 
   else
+    CRCPRICE="1"
     CALC="${BTC}"
   fi
 
@@ -129,7 +130,7 @@ printf '%s\n' "$WALLETS" | while IFS= read -r line; do
     tochf
 
     # output
-    echo "Currency: ${CRC} > Address: ${ADDR} > Amount: ${COINSHOW} > Price: ${CALCFLL}.${CALCDEC:0:${CALCROUND}} > CHF: ${CHFFLL}.${CHFDEC:0:${CHFROUND}}"
+    echo "Currency: ${CRC} > Address: ${ADDR} > Amount: ${COINSHOW} > BTC: ${CRCPRICE} > CHF: ${CALCFLL}.${CALCDEC:0:${CALCROUND}} > Total: ${CHFFLL}.${CHFDEC:0:${CHFROUND}}"
 
     # output total amount into outfile
     if [[ -f "${OUTFILE}" ]]; then
