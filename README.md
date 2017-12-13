@@ -9,6 +9,9 @@ A collection of simple scripts intended for daily usage
 1. [bittrex.sh](bittrex.sh) *Bash script to interact with Bittrex API*
    * Call currency balances, deposit addresses and histories etc
    * For the moment, this script only utilises read only API calls
+1. [bittrex-alerting.sh](bittrex-alerting.sh) *Bash script to interact with Bittrex API*
+   * Alert when changes of more than 20% occur on chosen cryptocurrencies
+   * Show date as well as difference in percent
 1. [bittrex-portfolio.sh](bittrex-portfolio.sh) *Bash script to interact with Bittrex API*
    * Get all non-empty wallets from Bittrex
    * Show amount of cryptocurrencies as well as calculate the according CHF worth
