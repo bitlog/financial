@@ -3,10 +3,12 @@
 
 # set variable variables
 CRCYFILE="${HOME}/.currencies"
+SLEEPTIME="10"
 
 
 # set global variables
 PRG="$(basename ${0})"
+ALRTFILE="/tmp/${PRG}-alerts"
 COLOR_GREEN="\033[01;32m"
 COLOR_RED="\033[01;31m"
 COLOR_NONE="\033[00m"
@@ -33,7 +35,6 @@ while true ; do
 
     DATA="$(curl -s --connect-timeout 2 -m 5 "https://bittrex.com/api/v1.1/public/getticker?market=${MARKET}" | python -mjson.tool 2> /dev/null)"
     CHCKFILE="/tmp/${PRG}-${crc}"
-    ALRTFILE="/tmp/${PRG}-alerts"
 
     if echo "${DATA}" | grep -q "\"success\": true"; then
       PRC="$(echo "${DATA}" | grep "\"Bid\"" | awk '{print $2}' | sed -e 's/,$//' -e 's/[eE]+*/\*10\^/' | bc -l | sed -e 's/^\./0./' -e 's/[0]*$//' -e 's/\.$/.00/')"
@@ -87,7 +88,7 @@ while true ; do
     fi
   done
 
-  sleep 10
+  sleep ${SLEEPTIME}
 done
 
 exit 0
