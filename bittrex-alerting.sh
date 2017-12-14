@@ -62,13 +62,15 @@ while true ; do
                 fi
 
                 if [[ "${PERC}" -ge "20" ]]; then
-                  echo -e "${COLUMNS}"
-                  OUTPUT="${COLOR_ALERT}${CRCY} > ${PERC}% ${TEXT_ALERT}${COLOR_NONE}\n"
-                  OUTPUT+="Date > $(date '+%F %T')\n"
-                  OUTPUT+="Before > ${line}\n"
-                  OUTPUT+="Now > ${PRICE}"
-                  echo -e "${OUTPUT}" | column -ets'>'
-                  echo -e "${COLUMNS}\n"
+                  if tty -s; then
+                    echo -e "${COLUMNS}"
+                    OUTPUT="${COLOR_ALERT}${CRCY} > ${PERC}% ${TEXT_ALERT}${COLOR_NONE}\n"
+                    OUTPUT+="Date > $(date '+%F %T')\n"
+                    OUTPUT+="Before > ${line}\n"
+                    OUTPUT+="Now > ${PRICE}"
+                    echo -e "${OUTPUT}" | column -ets'>'
+                    echo -e "${COLUMNS}\n"
+                  fi
 
                   if ! grep -qs "${CRCY}" ${ALRTFILE}; then
                     ALRTFILE_TEXT="${CRCY} $(cat ${ALRTFILE} 2> /dev/null)"
