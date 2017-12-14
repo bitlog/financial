@@ -22,16 +22,27 @@ fi
 
 
 while true ; do
-  for crc in $(cat ${CRCYFILE}); do
-    CRC="$(echo "${crc}" | tr '[:upper:]' '[:lower:]')"
+  for crc in $(echo "BTC ETH $(cat ${CRCYFILE})" | tr ' ' '\n' | tr '[:upper:]' '[:lower:]' | sort -u | tr '\n' ' '); do
     CRCY="$(echo "${crc}" | tr '[:lower:]' '[:upper:]')"
-    DATA="$(curl -s --connect-timeout 2 -m 5 "https://bittrex.com/api/v1.1/public/getticker?market=BTC-${CRCY}" | python -mjson.tool 2> /dev/null)"
-    CHCKFILE="/tmp/${PRG}-${CRC}"
+
+    if [[ "${CRCY}" == "BTC" ]]; then
+      MARKET="USDT-${CRCY}"
+    else
+      MARKET="BTC-${CRCY}"
+    fi
+
+    DATA="$(curl -s --connect-timeout 2 -m 5 "https://bittrex.com/api/v1.1/public/getticker?market=${MARKET}" | python -mjson.tool 2> /dev/null)"
+    CHCKFILE="/tmp/${PRG}-${crc}"
 
     if echo "${DATA}" | grep -q "\"success\": true"; then
       PRC="$(echo "${DATA}" | grep "\"Bid\"" | awk '{print $2}' | sed -e 's/,$//' -e 's/[eE]+*/\*10\^/' | bc -l | sed -e 's/^\./0./' -e 's/[0]*$//' -e 's/\.$/.00/')"
       if [[ ! -z "${PRC}" ]]; then
-        PRICE="$(echo "${PRC} * 100000000" | bc -l | awk -F'.' '{print $1}')"
+        if [[ "${CRCY}" == "BTC" ]]; then
+          PRICE="${PRC}"
+        else
+          PRICE="$(echo "${PRC} * 100000000" | bc -l | awk -F'.' '{print $1}')"
+        fi
+
         echo "${PRICE}" >> ${CHCKFILE}
 
         if [[ -f ${CHCKFILE} ]]; then
