@@ -30,38 +30,42 @@ while true ; do
 
     if echo "${DATA}" | grep -q "\"success\": true"; then
       PRC="$(echo "${DATA}" | grep "\"Bid\"" | awk '{print $2}' | sed -e 's/,$//' -e 's/[eE]+*/\*10\^/' | bc -l | sed -e 's/^\./0./' -e 's/[0]*$//' -e 's/\.$/.00/')"
-      PRICE="$(echo "${PRC} * 100000000" | bc -l | awk -F'.' '{print $1}')"
-      echo "${PRICE}" >> ${CHCKFILE}
+      if [[ ! -z "${PRC}" ]]; then
+        PRICE="$(echo "${PRC} * 100000000" | bc -l | awk -F'.' '{print $1}')"
+        echo "${PRICE}" >> ${CHCKFILE}
 
-      if [[ -f ${CHCKFILE} ]]; then
-        if [[ "$(wc -l ${CHCKFILE} | awk '{print $1}')" -ge "1" ]]; then
-          while read line; do
-            PERC="$(echo "(${line} - ${PRICE}) / ${PRICE} * 100" | bc -l | awk -F'.' '{print $1}' | sed 's/^-//')"
+        if [[ -f ${CHCKFILE} ]]; then
+          if [[ "$(wc -l ${CHCKFILE} | awk '{print $1}')" -ge "1" ]]; then
+            while read line; do
+              if [[ ! -z "${line}" ]]; then
+                PERC="$(echo "(${line} - ${PRICE}) / ${PRICE} * 100" | bc -l | awk -F'.' '{print $1}' | sed 's/^-//')"
 
-           if [[ "$(echo "${PRICE}>${line}" | bc -l)" -ge "1" ]]; then
-              COLOR_ALERT="${COLOR_GREEN}"
-              TEXT_ALERT="more"
-            else
-              COLOR_ALERT="${COLOR_RED}"
-              TEXT_ALERT="less"
-            fi
+                if [[ "$(echo "${PRICE}>${line}" | bc -l)" -ge "1" ]]; then
+                  COLOR_ALERT="${COLOR_GREEN}"
+                  TEXT_ALERT="more"
+                else
+                  COLOR_ALERT="${COLOR_RED}"
+                  TEXT_ALERT="less"
+                fi
 
-            if [[ "${PERC}" -ge "20" ]]; then
-              echo -e "${COLUMNS}"
-              OUTPUT="${COLOR_ALERT}${CRCY} > ${PERC}% ${TEXT_ALERT}${COLOR_NONE}\n"
-              OUTPUT+="Date > $(date '+%F %T')\n"
-              OUTPUT+="Before > ${line}\n"
-              OUTPUT+="Now > ${PRICE}"
-              echo -e "${OUTPUT}" | column -ets'>'
-              echo -e "${COLUMNS}\n"
-              break
-            fi
-          done < ${CHCKFILE}
+                if [[ "${PERC}" -ge "20" ]]; then
+                  echo -e "${COLUMNS}"
+                  OUTPUT="${COLOR_ALERT}${CRCY} > ${PERC}% ${TEXT_ALERT}${COLOR_NONE}\n"
+                  OUTPUT+="Date > $(date '+%F %T')\n"
+                  OUTPUT+="Before > ${line}\n"
+                  OUTPUT+="Now > ${PRICE}"
+                  echo -e "${OUTPUT}" | column -ets'>'
+                  echo -e "${COLUMNS}\n"
+                  break
+                fi
+              fi
+            done < ${CHCKFILE}
+          fi
+
+          until [[ "$(wc -l ${CHCKFILE} | awk '{print $1}')" -le "5" ]]; do
+            sed -i 1d ${CHCKFILE}
+          done
         fi
-
-        until [[ "$(wc -l ${CHCKFILE} | awk '{print $1}')" -le "5" ]]; do
-          sed -i 1d ${CHCKFILE}
-        done
       fi
     fi
   done
