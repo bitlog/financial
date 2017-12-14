@@ -16,9 +16,14 @@ TERM_WIDTH="$(tput cols)"
 COLUMNS="$(printf '%*s\n' "${TERM_WIDTH}" '' | tr ' ' -)"
 
 
-echo
+if tty -s; then
+  echo
+fi
+
 if [[ ! -f "${CRCYFILE}" ]]; then
-  echo -e "Need file ${CRCYFILE} to read cryptocurrencies!\n"
+  if tty -s; then
+    echo -e "Need file ${CRCYFILE} to read cryptocurrencies!\n"
+  fi
   exit 1
 fi
 
@@ -26,6 +31,7 @@ fi
 while true ; do
   for crc in $(echo "BTC ETH $(cat ${CRCYFILE})" | tr ' ' '\n' | tr '[:upper:]' '[:lower:]' | sort -u | tr '\n' ' '); do
     CRCY="$(echo "${crc}" | tr '[:lower:]' '[:upper:]')"
+    CHCKFILE="/tmp/${PRG}-${crc}"
 
     if [[ "${CRCY}" == "BTC" ]]; then
       MARKET="USDT-${CRCY}"
@@ -34,7 +40,6 @@ while true ; do
     fi
 
     DATA="$(curl -s --connect-timeout 2 -m 5 "https://bittrex.com/api/v1.1/public/getticker?market=${MARKET}" | python -mjson.tool 2> /dev/null)"
-    CHCKFILE="/tmp/${PRG}-${crc}"
 
     if echo "${DATA}" | grep -q "\"success\": true"; then
       PRC="$(echo "${DATA}" | grep "\"Bid\"" | awk '{print $2}' | sed -e 's/,$//' -e 's/[eE]+*/\*10\^/' | bc -l | sed -e 's/^\./0./' -e 's/[0]*$//' -e 's/\.$/.00/')"
@@ -61,7 +66,7 @@ while true ; do
                   TEXT_ALERT="less"
                 fi
 
-                if [[ "${PERC}" -ge "20" ]]; then
+                if [[ "${PERC}" -ge "10" ]]; then
                   if tty -s; then
                     echo -e "${COLUMNS}"
                     OUTPUT="${COLOR_ALERT}${CRCY} > ${PERC}% ${TEXT_ALERT}${COLOR_NONE}\n"
