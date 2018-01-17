@@ -30,7 +30,7 @@ if ! tty -s; then
 
     TTYWIDTH="${1}"
     TTYMAX="${2}"
-    FOLD="$((TTYMAX-20))"
+    FOLD="$((TTYMAX-5))"
 
     cat ${FILE} | fold -sw $((TTYWIDTH-FOLD)) | head -1 | awk 'BEGIN{FS=OFS="|"} NF--' | sed 's/[ \t]*$//'
 
