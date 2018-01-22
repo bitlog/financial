@@ -85,7 +85,7 @@ while true ; do
                 fi
 
                 # alert if large change was detected
-                if [[ "${PERC}" -ge "10" ]]; then
+                if [[ "${PERC}" -ge "5" ]]; then
                   # output alert if in terminal
                   if tty -s; then
                     echo -e "${COLUMNS}"
