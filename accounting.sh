@@ -1,21 +1,44 @@
 #!/bin/bash
 
 
+#    #   #   #
+###     ###  #   ###  ###
+# #  #   #   #   # #  # #
+###  #   #   ##  ###   ##
+                      ###
+
+#
+# written by Sean Rütschi
+# created on Debian Jessie 8.0
+#
+
+
 # set required variables
-TERM_WIDTH="$(tput cols)"
-COLUMNS="$(printf '%*s\n' "${TERM_WIDTH}" '' | tr ' ' -)"
-MONTHS="13"
 ACCOUNTINGDIR="${HOME}/bookkeeping"
+MONTHS="13"
+
+
+# set other variables
+COLOR_GRAY="\033[01;30m"
+COLOR_GREEN="\033[01;32m"
+COLOR_RED="\033[01;31m"
+COLOR_WHITE="\033[01;37m"
+COLOR_YELLOW="\033[01;33m"
+COLOR_NONE="\033[00m"
+TERM_WIDTH="$(tput cols)"
 
 
 # create functions
+function print_columns() {
+  printf '%*s\n' "${TERM_WIDTH}" '' | tr ' ' -
+}
 function help_folder() {
   mkdir ${ACCOUNTINGDIR}
-  echo -e "\nNo ${ACCOUNTINGDIR} folder available: created.\n"
+  echo -e "\n${COLOR_RED}No ${ACCOUNTINGDIR} folder available: ${COLOR_GREEN}created.${COLOR_NONE}\n"
 }
 function help_files() {
-  echo -e "\nNo financial data available in ${ACCOUNTINGDIR} folder."
-  echo -e "\nTemplate for files:\n\nDATE\tCOSTS\tINCOME\tCOMMENT\t--> Variables are seperated by \\\t (tabspace) to ensure correct processing.\n"
+  echo -e "\n${COLOR_RED}No financial data available in ${ACCOUNTINGDIR} folder.${COLOR_NONE}"
+  echo -e "\nTemplate for files:\n\n${COLOR_YELLOW}DATE\t${COLOR_RED}COSTS\t${COLOR_GREEN}INCOME\t${COLOR_NONE}COMMENT\t-->Variables are seperated by \\\t (tabspace) to ensure correct processing.\n"
 }
 
 function month() {
@@ -28,11 +51,9 @@ function month_math() {
 
 # ensure existence of accounting folder
 if [[ ! -d "${ACCOUNTINGDIR}" ]]; then
-  echo -e "\n${COLUMNS}"
   help_folder
-  echo "${COLUMNS}"
+  print_columns
   help_files
-  echo -e "${COLUMNS}\n"
   exit 1
 fi
 
@@ -71,50 +92,66 @@ if [[ -n "${@}" ]]; then
 else
   for i in $(seq $(month_math) -1 0); do
     ${0} $(month ${i})
-
-    # print line breaks to increase visibility
-    if [[ "${i}" -ne "0" ]];then
-      echo -e "${COLUMNS}\n${COLUMNS}"
-    fi
   done
   exit 0
 fi
 
 
 # title
-echo -e "\nSEARCH >\t${TXT}\n${COLUMNS}"
+echo -e "\n${COLOR_WHITE}SEARCH >\t${TXT}${COLOR_NONE}"
+print_columns
 
 # calculate income
 INCOMING="$(echo "${ALL}" | awk -F"\t" '{if ($3)print $0}')"
 INCOMINGTOTAL="$(echo $(echo "${INCOMING}" | awk '{print $2}') | sed -e 's/[^0-9,. ]*//g' -e 's/ /+/g' | bc)"
-if [[ -z "${INCOMING}" ]]; then INCOMING="No gains"; fi
+if [[ -z "${INCOMING}" ]]; then INCOMING="${COLOR_RED}No gains${COLOR_NONE}"; fi
 if [[ -z "${INCOMINGTOTAL}" ]]; then INCOMINGTOTAL="0"; fi
 
 # print income
-echo -e "${INCOMING}\n${COLUMNS}" | sed 's/\t\t/\t/g'
+echo -e "${COLOR_GREEN}${INCOMING}${COLOR_NONE}" | sed 's/\t\t/\t/g'
+print_columns
 
 
 # calculate costs
 COSTING="$(echo "${ALL}" | awk -F"\t" '{if ($2)print $0}')"
 COSTINGTOTAL="$(echo $(echo "${COSTING}" | awk '{print $2}') | sed -e 's/[^0-9,. ]*//g' -e 's/ /+/g' | bc)"
-if [[ -z "${COSTING}" ]]; then COSTING="No costs"; fi
+if [[ -z "${COSTING}" ]]; then COSTING="${COLOR_GREEN}No costs${COLOR_NONE}"; fi
 if [[ -z "${COSTINGTOTAL}" ]]; then COSTINGTOTAL="0"; fi
 
 # print costs
-echo -e "${COSTING}\n${COLUMNS}" | sed 's/\t\t/\t/g'
+echo -e "${COLOR_RED}${COSTING}${COLOR_NONE}" | sed 's/\t\t/\t/g'
+print_columns
 
+
+# set colors for income
+if echo ${INCOMINGTOTAL} | grep -q ^0$; then
+  COLOR_INCOME="${COLOR_RED}"
+else
+  COLOR_INCOME="${COLOR_GREEN}"
+fi
+
+# set colors for costs
+if echo ${COSTINGTOTAL} | grep -q ^0$; then
+  COLOR_COSTING="${COLOR_GREEN}"
+else
+  COLOR_COSTING="${COLOR_RED}"
+fi
 
 # calculate difference
 DIFF="$(echo ${INCOMINGTOTAL}-${COSTINGTOTAL} | bc)"
 TOTALBAR="$(echo "${DIFF}" | sed 's/[^0-9,.]*//g' | wc -m)"
-if ! echo ${DIFF} | grep -q ^\-; then
-  SIGN="+"
+if echo ${DIFF} | grep -q ^\-; then
+  COLOR="${COLOR_RED}"
+elif echo ${DIFF} | grep -q ^0$; then
+  COLOR="${COLOR_YELLOW}+"
+else
+  COLOR="${COLOR_GREEN}+"
 fi
 
 # print comparison
-echo -e "GAINS  >\t+${INCOMINGTOTAL}"
-echo -e "COSTS  >\t-${COSTINGTOTAL}"
-echo -e "TOTAL  >\t${SIGN}${DIFF}"
+echo -e "GAINS  >\t${COLOR_INCOME}+${INCOMINGTOTAL}${COLOR_NONE}"
+echo -e "COSTS  >\t${COLOR_COSTING}-${COSTINGTOTAL}${COLOR_NONE}"
+echo -e "TOTAL  >\t${COLOR}${DIFF}${COLOR_NONE}"
 printf '\t\t%*s\n\n' "${TOTALBAR}" '' | tr ' ' =
 
 
