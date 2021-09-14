@@ -74,7 +74,7 @@ if [[ ! -z "${BTC}" ]]; then
 
   # calculate bittrex prices
   for i in ${CURRENCIES}; do
-    CRC="$(${CURL} "https://bittrex.com/api/v1.1/public/getticker?market=BTC-${i}" | python -mjson.tool 2> /dev/null)"
+    CRC="$(${CURL} "https://bittrex.com/api/v1.1/public/getticker?market=BTC-${i}" | python3 -mjson.tool 2> /dev/null)"
 
     if [[ ! -z "${CRC}" ]] && echo "${CRC}" | grep -q "\"Bid\""; then
       CRCPRICE="$(echo "${CRC}" | grep "\"Bid\"" | awk '{print $2}' | sed -e 's/,$//' -e 's/[eE]+*/\*10\^/')"

@@ -37,7 +37,7 @@ function bittrex_call() {
 
   # get data
   CALL="$(curl -s --connect-timeout ${TMOUT} -m ${TMOUTMAX} -H "apisign: ${SIGN}" "${APIURL}${APIKEYTAG}" || echo -e "${TMOUTMSG}")"
-  DATA="$(echo "${CALL}" | python -mjson.tool 2> /dev/null)"
+  DATA="$(echo "${CALL}" | python3 -mjson.tool 2> /dev/null)"
 
   # check if success flag true
   if echo "${DATA}" | grep -q "\"success\": true"; then

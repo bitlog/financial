@@ -52,7 +52,7 @@ while true ; do
     fi
 
     # get online data
-    DATA="$(curl -s --connect-timeout 2 -m 5 "https://bittrex.com/api/v1.1/public/getticker?market=${MARKET}" | python -mjson.tool 2> /dev/null)"
+    DATA="$(curl -s --connect-timeout 2 -m 5 "https://bittrex.com/api/v1.1/public/getticker?market=${MARKET}" | python3 -mjson.tool 2> /dev/null)"
 
     # run through data if obtained
     if echo "${DATA}" | grep -q "\"success\": true"; then

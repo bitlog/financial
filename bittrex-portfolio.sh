@@ -38,7 +38,7 @@ fi
 # get account information
 APIURL="https://bittrex.com/api/v1.1/account/getbalances?apikey=${APIKEY}&nonce=$(date '+%s')"
 SIGN="$(echo -n "${APIURL}" | openssl sha512 -hmac "${SECRETKEY}" | awk '{print $NF}')"
-ACCOUNT="$(${CURL} -H "apisign: ${SIGN}" "${APIURL}" | python -mjson.tool 2> /dev/null)"
+ACCOUNT="$(${CURL} -H "apisign: ${SIGN}" "${APIURL}" | python3 -mjson.tool 2> /dev/null)"
 
 # check account information success
 if echo "${ACCOUNT}" | grep -q \""success\": false"; then
@@ -111,7 +111,7 @@ printf '%s\n' "$WALLETS" | while IFS= read -r line; do
 
   # calculations when currency is not BTC
   if [[ "${CRC}" != "BTC" ]]; then
-    CRCPRC="$(${CURL} "https://bittrex.com/api/v1.1/public/getticker?market=BTC-${CRC}" | python -mjson.tool 2> /dev/null)"
+    CRCPRC="$(${CURL} "https://bittrex.com/api/v1.1/public/getticker?market=BTC-${CRC}" | python3 -mjson.tool 2> /dev/null)"
 
     if [[ ! -z "${CRCPRC}" ]]; then
       CRCPRICE="$(echo "${CRCPRC}" | grep "\"Bid\"" | awk '{print $2}' | sed 's/,$//' | calc)"
